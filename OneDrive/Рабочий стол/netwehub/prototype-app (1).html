@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETWEHUB - Interactive Prototype</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #38bdf8;
+            --dark-bg: #0f172a;
+            --dark-surface: #1e293b;
+            --dark-text: #f1f5f9;
+            --text-secondary: #cbd5e1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 250px;
+            background-color: var(--dark-surface);
+            padding: 20px;
+            border-right: 1px solid #334155;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 30px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover {
+            background-color: #334155;
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary);
+            color: var(--dark-bg);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            background-color: var(--dark-surface);
+            padding: 20px 30px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-bg);
+            font-weight: bold;
+        }
+
+        /* CONTENT AREA */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .content.full {
+            grid-template-columns: 1fr;
+        }
+
+        /* CARDS */
+        .card {
+            background-color: var(--dark-surface);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #334155;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        /* STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background-color: var(--dark-surface);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* PROGRESS BARS */
+        .progress-item {
+            margin-bottom: 20px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #334155;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        /* NETWORK VISUALIZATION */
+        .network-container {
+            height: 350px;
+            background-color: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* BUTTONS */
+        .btn {
+            background-color: var(--primary);
+            color: var(--dark-bg);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background-color: #0ea5e9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #334155;
+            color: var(--dark-text);
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+
+        /* TABLES */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .table th {
+            background-color: #020617;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .table tr:hover {
+            background-color: #0f172a;
+        }
+
+        /* HIDDEN SECTIONS */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .badge-warning {
+            background-color: rgba(249, 115, 22, 0.2);
+            color: #f97316;
+        }
+
+        .badge-info {
+            background-color: rgba(56, 189, 248, 0.2);
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="logo">🚀 NETWEHUB</div>
+            <ul class="nav-menu">
+                <li class="nav-item active" onclick="switchSection('dashboard')">📊 Dashboard</li>
+                <li class="nav-item" onclick="switchSection('metrics')">📈 My Metrics</li>
+                <li class="nav-item" onclick="switchSection('network')">🔗 Network</li>
+                <li class="nav-item" onclick="switchSection('projects')">💼 Projects</li>
+                <li class="nav-item" onclick="switchSection('resources')">📚 Resources</li>
+                <li class="nav-item" onclick="switchSection('settings')">⚙️ Settings</li>
+            </ul>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- HEADER -->
+            <div class="header">
+                <div class="header-title" id="pageTitle">Dashboard</div>
+                <div class="user-profile">
+                    <span>Привет, Саша!</span>
+                    <div class="avatar">СА</div>
+                </div>
+            </div>
+
+            <!-- CONTENT -->
+            <div class="content">
+                <!-- DASHBOARD SECTION -->
+                <div class="section active" id="dashboard-section">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-title">📊 Обзор экосистемы</div>
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-number">147</div>
+                                <div class="stat-label">Участников</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number">18</div>
+                                <div class="stat-label">В программе</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number">5</div>
+                                <div class="stat-label">Проектов</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number">87%</div>
+                                <div class="stat-label">Активности</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Твой прогресс EI</div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Self-Awareness</span>
+                                <span>72/100</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 72%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Empathy</span>
+                                <span>68/100</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 68%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Communication</span>
+                                <span>75/100</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Motivation</span>
+                                <span>80/100</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 80%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">📊 Китайский язык</div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>HSK Level</span>
+                                <span>3/6</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 50%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Иероглифы</span>
+                                <span>247/2500</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 10%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">🎯 Активность</div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>События</th>
+                                    <th>Дата</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Завершил воркшоп №5</td>
+                                    <td>2 часа назад</td>
+                                </tr>
+                                <tr>
+                                    <td>Обновил метрики EI</td>
+                                    <td>5 часов назад</td>
+                                </tr>
+                                <tr>
+                                    <td>Присоединился к проекту</td>
+                                    <td>1 день назад</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- METRICS SECTION -->
+                <div class="section" id="metrics-section">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-title">📈 Твои метрики за 12 недель</div>
+                        <div class="chart-container">
+                            <canvas id="metricsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Распределение по компонентам</div>
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">История изменений</div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Компонент</th>
+                                    <th>Было</th>
+                                    <th>Стало</th>
+                                    <th>Прогресс</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Self-Awareness</td>
+                                    <td>50</td>
+                                    <td>72</td>
+                                    <td><span class="badge badge-success">+22</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Empathy</td>
+                                    <td>50</td>
+                                    <td>68</td>
+                                    <td><span class="badge badge-success">+18</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Communication</td>
+                                    <td>50</td>
+                                    <td>75</td>
+                                    <td><span class="badge badge-success">+25</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- NETWORK SECTION -->
+                <div class="section" id="network-section">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-title">🔗 Твоя сетевая позиция</div>
+                        <div class="network-container">
+                            <svg width="100%" height="100%" id="networkGraph">
+                                <!-- Network visualization will be drawn here -->
+                            </svg>
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
+                            ✨ Ты связан(а) с <strong>12 участниками</strong> через <strong>3 проекта</strong>
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">👥 Твои связи</div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Имя</th>
+                                    <th>Уровень</th>
+                                    <th>Связь через</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Маша</td>
+                                    <td><span class="badge badge-info">Уровень 2</span></td>
+                                    <td>Проект #1</td>
+                                </tr>
+                                <tr>
+                                    <td>Иван</td>
+                                    <td><span class="badge badge-info">Уровень 2</span></td>
+                                    <td>Study buddy</td>
+                                </tr>
+                                <tr>
+                                    <td>Оля</td>
+                                    <td><span class="badge badge-warning">Уровень 1</span></td>
+                                    <td>Интенсив по китайскому</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">📊 Статистика сети</div>
+                        <div style="margin-bottom: 15px;">
+                            <p style="margin-bottom: 10px; font-size: 13px; color: var(--text-secondary);">
+                                <strong>Твоя центральность в сети:</strong> 8.5/10
+                            </p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <p style="margin-bottom: 10px; font-size: 13px; color: var(--text-secondary);">
+                                <strong>Потенциал моста:</strong> Ты соединяешь группы проектов
+                            </p>
+                            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 10px;">
+                                💡 Совет: Попробуй познакомить Машу и Ивана — они могут хорошо работать вместе
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROJECTS SECTION -->
+                <div class="section" id="projects-section">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-title">💼 Твои проекты</div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Название</th>
+                                    <th>Статус</th>
+                                    <th>Команда</th>
+                                    <th>Прогресс</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Анализ рынка 1688.com</td>
+                                    <td><span class="badge badge-success">В процессе</span></td>
+                                    <td>4 человека</td>
+                                    <td>60%</td>
+                                </tr>
+                                <tr>
+                                    <td>EdTech приложение</td>
+                                    <td><span class="badge badge-warning">Планирование</span></td>
+                                    <td>3 человека</td>
+                                    <td>20%</td>
+                                </tr>
+                                <tr>
+                                    <td>Tech trends study</td>
+                                    <td><span class="badge badge-success">В процессе</span></td>
+                                    <td>2 человека</td>
+                                    <td>75%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- RESOURCES SECTION -->
+                <div class="section" id="resources-section">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-title">📚 Материалы и ресурсы</div>
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: var(--primary); margin-bottom: 10px;">Воркшопы ФРОНЕСИС</h4>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>Дата</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Самопознание и эмоциональный осознанность</td>
+                                        <td>15 декабря</td>
+                                        <td><span class="badge badge-success">Завершено</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Управление стрессом и эмоциями</td>
+                                        <td>22 декабря</td>
+                                        <td><span class="badge badge-info">Предстоит</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Эмпатия и коммуникация</td>
+                                        <td>29 декабря</td>
+                                        <td><span class="badge badge-info">Предстоит</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS SECTION -->
+                <div class="section" id="settings-section">
+                    <div class="card">
+                        <div class="card-title">⚙️ Настройки профиля</div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Имя</label>
+                            <input type="text" value="Саша" style="width: 100%; padding: 10px; background-color: #020617; border: 1px solid #334155; border-radius: 6px; color: var(--dark-text);">
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Email</label>
+                            <input type="email" value="sasha@email.com" style="width: 100%; padding: 10px; background-color: #020617; border: 1px solid #334155; border-radius: 6px; color: var(--dark-text);">
+                        </div>
+                        <button class="btn" style="margin-top: 10px;">Сохранить изменения</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Переключение секций
+        function switchSection(section) {
+            // Скрыть все секции
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+
+            // Показать нужную секцию
+            document.getElementById(section + '-section').classList.add('active');
+            event.target.classList.add('active');
+
+            // Обновить заголовок
+            const titles = {
+                dashboard: '📊 Dashboard',
+                metrics: '📈 My Metrics',
+                network: '🔗 Network',
+                projects: '💼 Projects',
+                resources: '📚 Resources',
+                settings: '⚙️ Settings'
+            };
+            document.getElementById('pageTitle').textContent = titles[section];
+
+            // Перерисовать графики если нужно
+            if (section === 'metrics') {
+                setTimeout(drawCharts, 100);
+            }
+        }
+
+        // Графики
+        function drawCharts() {
+            // Chart 1: EI Metrics over time
+            const metricsCtx = document.getElementById('metricsChart');
+            if (metricsCtx && !metricsCtx.chart) {
+                metricsCtx.chart = new Chart(metricsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Неделя 1', 'Неделя 2', 'Неделя 3', 'Неделя 4', 'Неделя 6', 'Неделя 8', 'Неделя 10', 'Неделя 12'],
+                        datasets: [
+                            {
+                                label: 'Self-Awareness',
+                                data: [50, 55, 58, 62, 66, 69, 71, 72],
+                                borderColor: '#38bdf8',
+                                backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Communication',
+                                data: [50, 56, 60, 65, 68, 72, 74, 75],
+                                borderColor: '#22c55e',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Motivation',
+                                data: [50, 58, 62, 68, 72, 76, 78, 80],
+                                borderColor: '#f97316',
+                                backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#cbd5e1' }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: 0,
+                                max: 100,
+                                ticks: { color: '#cbd5e1' },
+                                grid: { color: '#334155' }
+                            },
+                            x: {
+                                ticks: { color: '#cbd5e1' },
+                                grid: { color: '#334155' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Chart 2: Radar chart
+            const radarCtx = document.getElementById('radarChart');
+            if (radarCtx && !radarCtx.chart) {
+                radarCtx.chart = new Chart(radarCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Self-Awareness', 'Self-Regulation', 'Empathy', 'Communication', 'Motivation'],
+                        datasets: [
+                            {
+                                label: 'Текущий уровень',
+                                data: [72, 65, 68, 75, 80],
+                                borderColor: '#38bdf8',
+                                backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                                fill: true
+                            },
+                            {
+                                label: 'Целевой уровень',
+                                data: [85, 85, 85, 85, 85],
+                                borderColor: '#94a3b8',
+                                backgroundColor: 'rgba(148, 163, 184, 0.05)',
+                                fill: true,
+                                borderDash: [5, 5]
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#cbd5e1' }
+                            }
+                        },
+                        scales: {
+                            r: {
+                                ticks: { color: '#cbd5e1' },
+                                grid: { color: '#334155' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Простая визуализация сетевого графа
+        function drawNetworkGraph() {
+            const svg = document.getElementById('networkGraph');
+            const width = svg.clientWidth;
+            const height = svg.clientHeight;
+
+            // Простые узлы
+            const nodes = [
+                { x: width * 0.5, y: height * 0.5, label: 'Ты', size: 8, color: '#38bdf8' },
+                { x: width * 0.3, y: height * 0.3, label: 'Маша', size: 5, color: '#22c55e' },
+                { x: width * 0.7, y: height * 0.3, label: 'Иван', size: 5, color: '#22c55e' },
+                { x: width * 0.2, y: height * 0.7, label: 'Оля', size: 4, color: '#f97316' },
+                { x: width * 0.8, y: height * 0.7, label: 'Петя', size: 5, color: '#22c55e' }
+            ];
+
+            // Рисовать связи
+            const mainNode = nodes[0];
+            nodes.slice(1).forEach(node => {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', mainNode.x);
+                line.setAttribute('y1', mainNode.y);
+                line.setAttribute('x2', node.x);
+                line.setAttribute('y2', node.y);
+                line.setAttribute('stroke', '#334155');
+                line.setAttribute('stroke-width', '1.5');
+                svg.appendChild(line);
+            });
+
+            // Рисовать узлы
+            nodes.forEach(node => {
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', node.x);
+                circle.setAttribute('cy', node.y);
+                circle.setAttribute('r', node.size);
+                circle.setAttribute('fill', node.color);
+                circle.setAttribute('opacity', '0.8');
+                svg.appendChild(circle);
+
+                // Лейбл
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', node.x);
+                text.setAttribute('y', node.y + node.size + 15);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#cbd5e1');
+                text.setAttribute('font-size', '12');
+                text.textContent = node.label;
+                svg.appendChild(text);
+            });
+        }
+
+        // Инициализация
+        window.addEventListener('load', drawNetworkGraph);
+    </script>
+</body>
+</html>
